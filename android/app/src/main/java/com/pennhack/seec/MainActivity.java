@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.TextView;
@@ -35,6 +36,7 @@ import com.google.android.gms.vision.CameraSource;
 import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.ml.vision.barcode.FirebaseVisionBarcode;
 import com.google.firebase.ml.vision.barcode.FirebaseVisionBarcodeDetectorOptions;
 
@@ -72,6 +74,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Helpers.getInstance().bottomNavigatior(this, mOnNavigationItemSelectedListener, 0);
 
 //        googleApiClient = new GoogleApiClient.Builder(this)
 //                .addApi(LocationServices.API)
@@ -302,4 +306,35 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     public void onProviderDisabled(String s) {
 
     }
+
+
+    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
+            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+
+        @Override
+        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+            Intent intent = null;
+            switch (item.getItemId()) {
+                case R.id.navigation_scan:
+
+                    break;
+                case R.id.navigation_profile:
+                    intent = new Intent(MainActivity.this, ProfileActivity.class);
+                    break;
+                case R.id.navigation_coupons:
+                    intent = new Intent(MainActivity.this, CouponActivity.class);
+                    break;
+                case R.id.navigation_market:
+                    intent = new Intent(MainActivity.this, MarketActivity.class);
+                    break;
+
+            }
+            if (intent!=null) {
+                startActivity(intent);
+                overridePendingTransition(0, 0);
+                return true;
+            }
+            return false;
+        }
+    };
 }

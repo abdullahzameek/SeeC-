@@ -19,7 +19,7 @@ class Helpers {
 
     public void bottomNavigatior(Activity activity, BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener, int pos){
         BottomNavigationView navView = activity.findViewById(R.id.nav_view);
-        navView.setLabelVisibilityMode(LabelVisibilityMode.LABEL_VISIBILITY_LABELED);
+//        navView.setLabelVisibilityMode(LabelVisibilityMode.LABEL_VISIBILITY_LABELED);
         navView.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
         Menu menu = navView.getMenu();
         MenuItem item = menu.getItem(pos);

@@ -20,6 +20,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".CouponActivity" />
+        <activity android:name=".MarketActivity" />
 
         <meta-data
             android:name="com.google.android.gms.vision.DEPENDENCIES"
