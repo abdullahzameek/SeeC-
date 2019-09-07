@@ -1,4 +1,4 @@
-from flask import Flask
+import flask
 from datetime import date
 import firebase_admin
 from firebase_admin import db
@@ -8,7 +8,7 @@ import requests
 import json
 
 capitalOneAPIKey = 'f990b904d48c2277e4b75f9ddd8ed3c9'
-app = Flask(__name__)
+app = flask.Flask(__name__)
 
 cred = credentials.Certificate("seec-pennapps-firebase-adminsdk-7zh6f-41c2a963c2.json")
 firebase_admin.initialize_app(cred, {
@@ -28,21 +28,26 @@ def getAllCustomers():
     json_data = json.loads(response.text)
     print(json_data)
 
-
     if response.status_code == 404:
 	    print('Couldnt retrieve all the customer data')
 
-def createCustomerCapitalOne(firstName, lastName, stNo, stName, city, stateCode,zipCode):
+def getLastCustomer():
+    url = 'http://api.reimaginebanking.com/customers?key={}'.format(capitalOneAPIKey)
+    response = requests.get(url)
+    json_data = json.loads(response.text)
+    return json_data[-1]['_id']
+
+def createCustomerCapitalOne(firstName, lastName, email):
     url = 'http://api.reimaginebanking.com/customers?key={}'.format(capitalOneAPIKey)
     payload = {
     "first_name": firstName,
     "last_name": lastName,
     "address": {
-        "street_number": stNo,
-        "street_name": stName,
-        "city": city,
-        "state": stateCode,
-        "zip": zipCode
+        "street_number": "defaultNum",
+        "street_name": "defaultStreetName",
+        "city": "defaultCity",
+        "state": "SC",
+        "zip": "00000"
         }
     }
 
@@ -54,18 +59,16 @@ def createCustomerCapitalOne(firstName, lastName, stNo, stName, city, stateCode,
     print(response.status_code)
     if response.status_code == 201:
 	    print('account created')
-    
-    get
+
+    custID = getLastCustomer()
+
     payload = {
-    "first_name": firstName,
-    "last_name": lastName,
-    "address": {
-        "street_number": stNo,
-        "street_name": stName,
-        "city": city,
-        "state": stateCode,
-        "zip": zipCode
-        }
+        "custID" : custID,
+        "first_name": firstName,
+        "last_name": lastName,
+        "email" : email,
+        "total_credits" : "0",
+        "current_balance": "0"
     }
     cust = CUSTSTATS.push(payload)
 
@@ -197,21 +200,15 @@ def getMerchantByID(merchantID):
 	    print('Couldnt retrieve the merchant data')
     
 
-##################################### Firebase Stuff ###################################################
-
-def createCustomerFB():
-    pass
-
-def addCustMiles():
-    pass
-
 
 
 if __name__ == "__main__":
     #createCustomerCapitalOne("Navyuh", "S", "24", "Songlin Lu", "Shanghai", "SH", "00780")
-    createCustomerCapitalOne("Heorhii", "S", "74", "24th Ave", "New York", "NY", "10003")
+    #createCustomerCapitalOne("kertu", "k")
+    createCustomerCapitalOne("Abucfewf", "ewefef", "arzvew68@nyu.edu")
     #createCustAccount("5d7393563c8c2216c9fcad2f")
-    #getAllCustomers()
+    getAllCustomers()
+    #getLastCustomer()
     #getAllAccounts()
     # createNewMerchant("vendorA")
     # getAllMerchants()
