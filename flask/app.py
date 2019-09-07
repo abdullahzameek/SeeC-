@@ -38,23 +38,9 @@ def getAccountByID(accountID):
 
     if response.status_code == 404:
 	    print('Couldnt retrieve the account data')
-
-def getNewLastCustomer():
-    url = 'http://api.reimaginebanking.com/customers?key=f990b904d48c2277e4b75f9ddd8ed3c9'
-    response = requests.get(url)
-    json_data = json.loads(response.text)
-    print(json_data)
-    #When we need to add a new customer to the database, we need to assign an ID. To do this, we first need the ID of the current last customer and add one to it  
-    currentLast = str(hex(int(("0x" + json_data[-1]['_id']),16)+1))[2:]
-
-    if response.status_code == 404:
-	    print('Couldnt retrieve all the customer data')
-    return currentLast
     
 
 def createCustomerCapitalOne(firstName, lastName, stNo, stName, city, stateCode,zipCode):
-    customerID = getNewLastCustomer()
-    print(customerID)
     url = 'http://api.reimaginebanking.com/customers?key={}'.format(capitalOneAPIKey)
     payload = {
     "first_name": firstName,
@@ -134,11 +120,16 @@ def subCustBalanceOne(accountID,amount):
         print("Error in spend")
 
 
+def viewCustBalance(customerID):
+    url = 'http://api.reimaginebanking.com/customers/{}/accounts?key={}'.format(customerID,capitalOneAPIKey)
+    response = requests.get(url)
+    json_data = json.loads(response.text)
+    print(json_data[0]['balance'])
 
-   
 
-def viewCustBalance():
-    pass
+    if response.status_code == 404:
+	    print('Couldnt retrieve balance')
+    return json_data[0]['balance']
 
 
 ##################################### Firebase Stuff ###################################################
@@ -152,6 +143,8 @@ def addCustMiles():
 
 
 if __name__ == "__main__":
-    getAllAccounts()
-    subCustBalanceOne("5d735df23c8c2216c9fcac5c", 1500000)
-    getAccountByID("5d735df23c8c2216c9fcac5c")
+    #createCustomerCapitalOne("Navya", "Suri", "42", "Jinqiao", "Shanghai", "SH", "00780")
+    #createCustAccount("5d7393563c8c2216c9fcad2f")
+    #getAllCustomers()
+    #getAllAccounts()
+    viewCustBalance("5d7393563c8c2216c9fcad2f")
