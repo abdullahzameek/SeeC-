@@ -114,14 +114,14 @@ def addCustBalanceOne(accountID, amount):
     else:
         print("Error in deposit")
 
-def subCustBalanceOne(accountID, amount):
+def subCustBalanceOne(accountID,amount):
     url = 'http://api.reimaginebanking.com/accounts/{}/withdrawals?key={}'.format(accountID,capitalOneAPIKey)
     payload = {
         "medium": "balance",
         "transaction_date": str(date.today()),
         "status": "completed",
         "amount": amount,
-        "description": "Amount spent in Carbon Credits"
+        "description": "Amount of CC spent"
     }
     response = requests.post( 
 	    url, 
@@ -129,9 +129,13 @@ def subCustBalanceOne(accountID, amount):
     	headers={'content-type':'application/json'},
 	)
     if response.status_code == 201:
-	    print('spent')
+	    print('spend made')
     else:
-        print("Error in spending")    
+        print("Error in spend")
+
+
+
+   
 
 def viewCustBalance():
     pass
@@ -148,18 +152,6 @@ def addCustMiles():
 
 
 if __name__ == "__main__":
-    # getNewLastCustomer()
-    # createCustomerCapitalOne("Navya", "Suri", "42", "Jinqiao Road", "Shanghai", "SH", "10003")
-    # getAllCustomers()
     getAllAccounts()
-    #createCustAccount("5d7324c3322fa016762f2fce")
-    # getAccountByID("5d735df23c8c2216c9fcac5c")
-    # addCustBalanceOne("5d735df23c8c2216c9fcac5c", 1200)
-    # getAccountByID("5d735df23c8c2216c9fcac5c")
-    # addCustBalanceOne("5d735df23c8c2216c9fcac5c",500000)
-    # addCustBalanceOne("5d735df23c8c2216c9fcac5c",600000)
-    # getAccountByID("5d735df23c8c2216c9fcac5c")
-    # addCustBalanceOne("5d735df23c8c2216c9fcac5c",6455300)
-    # getAccountByID("5d735df23c8c2216c9fcac5c")
-    subCustBalanceOne("5d735df23c8c2216c9fcac5c", -150000)
+    subCustBalanceOne("5d735df23c8c2216c9fcac5c", 1500000)
     getAccountByID("5d735df23c8c2216c9fcac5c")
