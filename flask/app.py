@@ -71,12 +71,12 @@ def createCustomerCapitalOne(firstName, lastName, email):
         "current_balance": "0"
     }
     cust = CUSTSTATS.push(payload)
-    print(custID)
-    response = CUSTSTATS.order_by_child('custID').equal_to(custID).get()
-    print(response)
-    for key, value in response.items(): 
-        fireBaseID = key
-    print(fireBaseID) 
+    # print(custID)
+    # response = CUSTSTATS.order_by_child('custID').equal_to(custID).get()
+    # print(response)
+    # for key, value in response.items(): 
+    #     fireBaseID = key
+    # print(fireBaseID) 
 
 def getAllAccounts():
     url = 'http://api.reimaginebanking.com/accounts?key={}'.format(capitalOneAPIKey)
@@ -92,12 +92,16 @@ def getAccountByID(accountID):
     url = 'http://api.reimaginebanking.com/accounts/{}?key={}'.format(accountID,capitalOneAPIKey)
     response = requests.get(url)
     json_data = json.loads(response.text)
-    print(json_data)
+    #print(json_data)
 
 
     if response.status_code == 404:
 	    print('Couldnt retrieve the account data')
-    
+    return(json_data)
+
+def getCustfromAcc(accountID):
+    res = getAccountByID(accountID)
+    return res['customer_id']
 
 def createCustAccount(customerID):
     url = 'http://api.reimaginebanking.com/customers/{}/accounts?key={}'.format(customerID,capitalOneAPIKey)
@@ -115,6 +119,14 @@ def createCustAccount(customerID):
 
     if response.status_code == 201:
 	    print('account created')
+
+def getFireBaseID(custID):
+    fireBaseID = ""
+    response = CUSTSTATS.order_by_child('custID').equal_to(custID).get()
+    for key, value in response.items(): 
+        fireBaseID = key
+        print("the key is ",key)
+    return fireBaseID
 
 def addCustBalanceOne(accountID, amount):
     url = 'http://api.reimaginebanking.com/accounts/{}/deposits?key={}'.format(accountID,capitalOneAPIKey)
@@ -134,6 +146,23 @@ def addCustBalanceOne(accountID, amount):
 	    print('deposit made')
     else:
         print("Error in deposit")
+    
+    custID = getCustfromAcc(accountID)
+    print("the customer id is ", custID)
+    firebaseId = getFireBaseID(custID)
+    #print("the firebase id is ", fireBaseID)
+    
+
+    response = CUSTSTATS.order_by_child('custID').equal_to(custID).get()
+    print(response)
+    for key, value in response.items(): 
+        cur_bal = value['current_balance']
+        print("the current balance is ",value['current_balance'])
+        finalamount = int(amount) + int(cur_bal)
+    CUSTSTATS.child(firebaseId).update({"current_balance": str(finalamount)})
+    CUSTSTATS.child(firebaseId).update({"total_credits": str(finalamount)})
+    #response = CUSTSTATS.order_by_child('custID').equal_to(custID).get()
+    # print(response)
 
 def subCustBalanceOne(accountID,amount):
     url = 'http://api.reimaginebanking.com/accounts/{}/withdrawals?key={}'.format(accountID,capitalOneAPIKey)
@@ -153,6 +182,20 @@ def subCustBalanceOne(accountID,amount):
 	    print('spend made')
     else:
         print("Error in spend")
+    
+    custID = getCustfromAcc(accountID)
+    print("the customer id is ", custID)
+    firebaseId = getFireBaseID(custID)
+    #print("the firebase id is ", fireBaseID)
+    
+
+    response = CUSTSTATS.order_by_child('custID').equal_to(custID).get()
+    print(response)
+    for key, value in response.items(): 
+        cur_bal = value['current_balance']
+        print("the current balance is ",value['current_balance'])
+        finalamount = int(cur_bal) - int(amount)
+    CUSTSTATS.child(firebaseId).update({"current_balance": str(finalamount)})
 
 
 def viewCustBalance(customerID):
@@ -208,14 +251,15 @@ def getMerchantByID(merchantID):
 
 
 if __name__ == "__main__":
-    #createCustomerCapitalOne("Navyuh", "S", "24", "Songlin Lu", "Shanghai", "SH", "00780")
-    #createCustomerCapitalOne("kertu", "k")
-    createCustomerCapitalOne("Abucfewf", "ewefef", "arzvew68@nyu.edu")
-    #createCustAccount("5d7393563c8c2216c9fcad2f")
-    #getAllCustomers()
-    #getLastCustomer()
+    #createCustomerCapitalOne("Abdullah", "Zameek", "arz268@nyu.edu")
+    #createCustAccount("5d7413923c8c2216c9fcadfe")
     #getAllAccounts()
-    # createNewMerchant("vendorA")
-    # getAllMerchants()
-    # viewCustBalance("5d7393563c8c2216c9fcad2f")
-    # getMerchantByID("5d7398573c8c2216c9fcad35")
+    #addCustBalanceOne("5d7413b23c8c2216c9fcae00", 100000)
+    # addCustBalanceOne("5d7413b23c8c2216c9fcae00", 150000)
+    # addCustBalanceOne("5d74182c3c8c2216c9fcae1b", 250000)
+    createCustAccount("5d7414453c8c2216c9fcae04")
+    addCustBalanceOne("5d74182c3c8c2216c9fcae1b", 475000)
+    subCustBalanceOne("5d74182c3c8c2216c9fcae1b", 250000)
+    addCustBalanceOne("5d74182c3c8c2216c9fcae1b", 2500)
+    subCustBalanceOne("5d74182c3c8c2216c9fcae1b", 35000)
+    #getAllAccounts()
