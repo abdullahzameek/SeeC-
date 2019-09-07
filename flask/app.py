@@ -1,10 +1,22 @@
 from flask import Flask
 from datetime import date
+import firebase_admin
+from firebase_admin import db
+from firebase_admin import credentials
+
 import requests
 import json
 
 capitalOneAPIKey = 'f990b904d48c2277e4b75f9ddd8ed3c9'
 app = Flask(__name__)
+
+cred = credentials.Certificate("seec-pennapps-firebase-adminsdk-7zh6f-41c2a963c2.json")
+firebase_admin.initialize_app(cred, {
+    'databaseURL' : 'https://seec-pennapps.firebaseio.com/'
+})
+
+CUSTSTATS = db.reference('custstats')
+
 currentLast = "5d7324c3322fa016762f2fce"
 
 
@@ -42,6 +54,20 @@ def createCustomerCapitalOne(firstName, lastName, stNo, stName, city, stateCode,
     print(response.status_code)
     if response.status_code == 201:
 	    print('account created')
+    
+    get
+    payload = {
+    "first_name": firstName,
+    "last_name": lastName,
+    "address": {
+        "street_number": stNo,
+        "street_name": stName,
+        "city": city,
+        "state": stateCode,
+        "zip": zipCode
+        }
+    }
+    cust = CUSTSTATS.push(payload)
 
 
 def getAllAccounts():
@@ -171,7 +197,6 @@ def getMerchantByID(merchantID):
 	    print('Couldnt retrieve the merchant data')
     
 
-
 ##################################### Firebase Stuff ###################################################
 
 def createCustomerFB():
@@ -183,11 +208,12 @@ def addCustMiles():
 
 
 if __name__ == "__main__":
-    #createCustomerCapitalOne("Navya", "Suri", "42", "Jinqiao", "Shanghai", "SH", "00780")
+    #createCustomerCapitalOne("Navyuh", "S", "24", "Songlin Lu", "Shanghai", "SH", "00780")
+    createCustomerCapitalOne("Heorhii", "S", "74", "24th Ave", "New York", "NY", "10003")
     #createCustAccount("5d7393563c8c2216c9fcad2f")
     #getAllCustomers()
     #getAllAccounts()
-    createNewMerchant("vendorA")
-    getAllMerchants()
-    viewCustBalance("5d7393563c8c2216c9fcad2f")
-    getMerchantByID("5d7398573c8c2216c9fcad35")
+    # createNewMerchant("vendorA")
+    # getAllMerchants()
+    # viewCustBalance("5d7393563c8c2216c9fcad2f")
+    # getMerchantByID("5d7398573c8c2216c9fcad35")
