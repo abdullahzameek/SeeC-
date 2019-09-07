@@ -7,15 +7,30 @@ import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Looper;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.vision.CameraSource;
 import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.barcode.Barcode;
@@ -33,27 +48,77 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     BarcodeDetector barcodeDetector;
 
+    GoogleApiClient googleApiClient;
+
+    FusedLocationProviderClient locationProviderClient;
+
+    LocationManager locationManager;
+
+    double currentLat, currentLon;
+
+    OnSuccessListener successfulLocationReceived = new OnSuccessListener<Location>() {
+        @Override
+        public void onSuccess(Location location) {
+            if (location == null)
+                Toast.makeText(MainActivity.this, "location null", Toast.LENGTH_SHORT).show();
+            else {
+                String displayString = "Lat: " + location.getLatitude() + "\nLong: " + location.getLongitude();
+                locationText.setText(displayString);
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+//        googleApiClient = new GoogleApiClient.Builder(this)
+//                .addApi(LocationServices.API)
+//                .addConnectionCallbacks(this)
+//                .addOnConnectionFailedListener(this)
+//                .build();
+
         surfaceView = findViewById(R.id.camera_surface_view);
         resultText = findViewById(R.id.result_text);
         locationText = findViewById(R.id.location_text);
+
+//        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED){
+//            ActivityCompat.requestPermissions(MainActivity.this,
+//                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1002);
+//        }
+//
+//        LocationRequest locationRequest = new LocationRequest();
+//        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+//        locationRequest.setInterval(1000);
+//        locationRequest.setFastestInterval(1000);
+
+        enableLocationSettings();
+
+//        locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 5, this);
+
+//        LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(locationRequest, null,null);
+
+    }
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
 
         barcodeDetector = new BarcodeDetector.Builder(this)
                 .setBarcodeFormats(Barcode.QR_CODE).build();
 
         cameraSource = new CameraSource.Builder(this, barcodeDetector)
-//                .setRequestedPreviewSize(640, 480)
+                .setRequestedPreviewSize(480, 480)
                 .setAutoFocusEnabled(true)
                 .build();
-
-        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1002);
-        }
 
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
@@ -97,10 +162,68 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
                 if (qrCodes.size()!=0){
                     resultText.setText(qrCodes.valueAt(0).displayValue);
+
+                    String coords = qrCodes.valueAt(0).displayValue;
+                    double lat, lon;
+                    String[] coordsSplit = coords.split("#");
+                    lat = Double.parseDouble(coordsSplit[0]);
+                    lon = Double.parseDouble(coordsSplit[1]);
+
+                    final double dist = distance(lat, lon, currentLat, currentLon);
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, dist+" is the dist", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+//                    lat = coords.split("#");
                 }
 
             }
         });
+
+    }
+
+    private void enableLocationSettings() {
+
+        LocationRequest locationRequest = LocationRequest.create()
+                .setInterval(1000)
+                .setFastestInterval(1000)
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+        final LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest);
+
+        LocationServices
+                .getSettingsClient(this)
+                .checkLocationSettings(builder.build())
+                .addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
+                    @Override
+                    public void onSuccess(LocationSettingsResponse response) {
+                        // startUpdatingLocation(...);
+//                        Log.i("blue", "onSuccess yay");
+//                        locationProviderClient.getLastLocation().addOnSuccessListener(successfulLocationReceived);
+                        String displayString = "Lat: " + currentLat + "\nLong: " + currentLon;
+                        locationText.setText(displayString);
+
+                    }
+                })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception ex) {
+                        if (ex instanceof ResolvableApiException) {
+                            // Location settings are NOT satisfied,  but this can be fixed  by showing the user a dialog.
+                            try {
+//                                Toast.makeText(MainActivity.this, "Location failure", Toast.LENGTH_SHORT).show();
+                                ResolvableApiException resolvable = (ResolvableApiException) ex;
+                                resolvable.startResolutionForResult(MainActivity.this, 1007);
+                            } catch (IntentSender.SendIntentException sendEx) {
+                                // Ignore the error.
+                            }
+                        }
+                    }
+                });
 
     }
 
@@ -124,8 +247,19 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
             case 1002: {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
+
                 }
             }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode){
+            case 1007:
+                locationProviderClient.getLastLocation().addOnSuccessListener(successfulLocationReceived);
+                break;
         }
     }
 
@@ -144,13 +278,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
 //        distance = Math.pow(distance, 2) + Math.pow(height, 2);
 
-        return Math.sqrt(distance);
+        return distance;
+//        return Math.sqrt(distance);
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        String displayString = "Lat: "+location.getLatitude()+"\nLong: "+location.getLongitude();
-        locationText.setText(displayString);
+        currentLat = location.getLatitude();
+        currentLon = location.getLongitude();
     }
 
     @Override
