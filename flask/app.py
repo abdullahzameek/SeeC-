@@ -1,4 +1,5 @@
 from flask import Flask
+from datetime import date
 import requests
 import json
 
@@ -7,6 +8,7 @@ app = Flask(__name__)
 currentLast = "5d7324c3322fa016762f2fce"
 
 ################################### Capital One Related Stuff #######################################
+
 def getAllCustomers():
     url = 'http://api.reimaginebanking.com/customers?key=f990b904d48c2277e4b75f9ddd8ed3c9'
     response = requests.get(url)
@@ -36,8 +38,6 @@ def getAccountByID(accountID):
 
     if response.status_code == 404:
 	    print('Couldnt retrieve the account data')
-
-
 
 def getNewLastCustomer():
     url = 'http://api.reimaginebanking.com/customers?key=f990b904d48c2277e4b75f9ddd8ed3c9'
@@ -95,11 +95,43 @@ def createCustAccount(customerID):
     if response.status_code == 201:
 	    print('account created')
 
-def addCustBalanceOne():
-    pass
+def addCustBalanceOne(accountID, amount):
+    url = 'http://api.reimaginebanking.com/accounts/{}/deposits?key={}'.format(accountID,capitalOneAPIKey)
+    payload = {
+        "medium": "balance",
+        "transaction_date": str(date.today()),
+        "status": "completed",
+        "amount" : amount,
+        "description": "Amount earned in Carbon Credits"
+    }
+    response = requests.post( 
+	    url, 
+	    data=json.dumps(payload),
+    	headers={'content-type':'application/json'},
+	)
+    if response.status_code == 201:
+	    print('deposit made')
+    else:
+        print("Error in deposit")
 
-def subCustBalance():
-    pass
+def subCustBalanceOne(accountID, amount):
+    url = 'http://api.reimaginebanking.com/accounts/{}/withdrawals?key={}'.format(accountID,capitalOneAPIKey)
+    payload = {
+        "medium": "balance",
+        "transaction_date": str(date.today()),
+        "status": "completed",
+        "amount": amount,
+        "description": "Amount spent in Carbon Credits"
+    }
+    response = requests.post( 
+	    url, 
+	    data=json.dumps(payload),
+    	headers={'content-type':'application/json'},
+	)
+    if response.status_code == 201:
+	    print('spent')
+    else:
+        print("Error in spending")    
 
 def viewCustBalance():
     pass
@@ -119,6 +151,15 @@ if __name__ == "__main__":
     # getNewLastCustomer()
     # createCustomerCapitalOne("Navya", "Suri", "42", "Jinqiao Road", "Shanghai", "SH", "10003")
     # getAllCustomers()
+    getAllAccounts()
     #createCustAccount("5d7324c3322fa016762f2fce")
-    #getAllAccounts()
-    getAccountByID("5d735e383c8c2216c9fcac5d")
+    # getAccountByID("5d735df23c8c2216c9fcac5c")
+    # addCustBalanceOne("5d735df23c8c2216c9fcac5c", 1200)
+    # getAccountByID("5d735df23c8c2216c9fcac5c")
+    # addCustBalanceOne("5d735df23c8c2216c9fcac5c",500000)
+    # addCustBalanceOne("5d735df23c8c2216c9fcac5c",600000)
+    # getAccountByID("5d735df23c8c2216c9fcac5c")
+    # addCustBalanceOne("5d735df23c8c2216c9fcac5c",6455300)
+    # getAccountByID("5d735df23c8c2216c9fcac5c")
+    subCustBalanceOne("5d735df23c8c2216c9fcac5c", -150000)
+    getAccountByID("5d735df23c8c2216c9fcac5c")
