@@ -7,10 +7,11 @@ capitalOneAPIKey = 'f990b904d48c2277e4b75f9ddd8ed3c9'
 app = Flask(__name__)
 currentLast = "5d7324c3322fa016762f2fce"
 
+
 ################################### Capital One Related Stuff #######################################
 
 def getAllCustomers():
-    url = 'http://api.reimaginebanking.com/customers?key=f990b904d48c2277e4b75f9ddd8ed3c9'
+    url = 'http://api.reimaginebanking.com/customers?key={}'.format(capitalOneAPIKey)
     response = requests.get(url)
     json_data = json.loads(response.text)
     print(json_data)
@@ -18,43 +19,8 @@ def getAllCustomers():
 
     if response.status_code == 404:
 	    print('Couldnt retrieve all the customer data')
-
-def getAllAccounts():
-    url = 'http://api.reimaginebanking.com/accounts?key=f990b904d48c2277e4b75f9ddd8ed3c9'
-    response = requests.get(url)
-    json_data = json.loads(response.text)
-    print(json_data)
-
-
-    if response.status_code == 404:
-	    print('Couldnt retrieve all the account data')
-
-def getAccountByID(accountID):
-    url = 'http://api.reimaginebanking.com/accounts/{}?key={}'.format(accountID,capitalOneAPIKey)
-    response = requests.get(url)
-    json_data = json.loads(response.text)
-    print(json_data)
-
-
-    if response.status_code == 404:
-	    print('Couldnt retrieve the account data')
-
-def getNewLastCustomer():
-    url = 'http://api.reimaginebanking.com/customers?key=f990b904d48c2277e4b75f9ddd8ed3c9'
-    response = requests.get(url)
-    json_data = json.loads(response.text)
-    print(json_data)
-    #When we need to add a new customer to the database, we need to assign an ID. To do this, we first need the ID of the current last customer and add one to it  
-    currentLast = str(hex(int(("0x" + json_data[-1]['_id']),16)+1))[2:]
-
-    if response.status_code == 404:
-	    print('Couldnt retrieve all the customer data')
-    return currentLast
-    
 
 def createCustomerCapitalOne(firstName, lastName, stNo, stName, city, stateCode,zipCode):
-    customerID = getNewLastCustomer()
-    print(customerID)
     url = 'http://api.reimaginebanking.com/customers?key={}'.format(capitalOneAPIKey)
     payload = {
     "first_name": firstName,
@@ -77,6 +43,27 @@ def createCustomerCapitalOne(firstName, lastName, stNo, stName, city, stateCode,
     if response.status_code == 201:
 	    print('account created')
 
+
+def getAllAccounts():
+    url = 'http://api.reimaginebanking.com/accounts?key={}'.format(capitalOneAPIKey)
+    response = requests.get(url)
+    json_data = json.loads(response.text)
+    print(json_data)
+
+
+    if response.status_code == 404:
+	    print('Couldnt retrieve all the account data')
+
+def getAccountByID(accountID):
+    url = 'http://api.reimaginebanking.com/accounts/{}?key={}'.format(accountID,capitalOneAPIKey)
+    response = requests.get(url)
+    json_data = json.loads(response.text)
+    print(json_data)
+
+
+    if response.status_code == 404:
+	    print('Couldnt retrieve the account data')
+    
 
 def createCustAccount(customerID):
     url = 'http://api.reimaginebanking.com/customers/{}/accounts?key={}'.format(customerID,capitalOneAPIKey)
@@ -134,11 +121,55 @@ def subCustBalanceOne(accountID,amount):
         print("Error in spend")
 
 
+def viewCustBalance(customerID):
+    url = 'http://api.reimaginebanking.com/customers/{}/accounts?key={}'.format(customerID,capitalOneAPIKey)
+    response = requests.get(url)
+    json_data = json.loads(response.text)
+    print(json_data[0]['balance'])
 
-   
 
-def viewCustBalance():
-    pass
+    if response.status_code == 404:
+	    print('Couldnt retrieve balance')
+    return json_data[0]['balance']
+
+
+def getAllMerchants():
+    url = 'http://api.reimaginebanking.com/merchants?key={}'.format(capitalOneAPIKey)
+    response = requests.get(url)
+    json_data = json.loads(response.text)
+    print(json_data)
+
+
+    if response.status_code == 404:
+	    print('Couldnt retrieve all the merchant data')
+
+def createNewMerchant(name):
+    url = 'http://api.reimaginebanking.com/merchants?key={}'.format(capitalOneAPIKey)
+    payload = {
+    "name": name,
+    }
+
+    response = requests.post( 
+	    url, 
+	    data=json.dumps(payload),
+	    headers={'content-type':'application/json'},
+	)
+    print(response.status_code)
+    if response.status_code == 201:
+	    print('account created')
+    else:
+        print("failed to create merchant")
+
+def getMerchantByID(merchantID):
+    url = 'http://api.reimaginebanking.com/merchants/{}?key={}'.format(merchantID,capitalOneAPIKey)
+    response = requests.get(url)
+    json_data = json.loads(response.text)
+    print(json_data)
+
+
+    if response.status_code == 404:
+	    print('Couldnt retrieve the merchant data')
+    
 
 
 ##################################### Firebase Stuff ###################################################
@@ -152,6 +183,11 @@ def addCustMiles():
 
 
 if __name__ == "__main__":
-    getAllAccounts()
-    subCustBalanceOne("5d735df23c8c2216c9fcac5c", 1500000)
-    getAccountByID("5d735df23c8c2216c9fcac5c")
+    #createCustomerCapitalOne("Navya", "Suri", "42", "Jinqiao", "Shanghai", "SH", "00780")
+    #createCustAccount("5d7393563c8c2216c9fcad2f")
+    #getAllCustomers()
+    #getAllAccounts()
+    createNewMerchant("vendorA")
+    getAllMerchants()
+    viewCustBalance("5d7393563c8c2216c9fcad2f")
+    getMerchantByID("5d7398573c8c2216c9fcad35")
