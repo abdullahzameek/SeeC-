@@ -22,6 +22,8 @@ import android.view.SurfaceView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -37,13 +39,18 @@ import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.ml.vision.barcode.FirebaseVisionBarcode;
 import com.google.firebase.ml.vision.barcode.FirebaseVisionBarcodeDetectorOptions;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
 
+    private static final int RC_SIGN_IN = 123;
     SurfaceView surfaceView;
     CameraSource cameraSource;
     TextView resultText, locationText;
@@ -74,6 +81,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        List<AuthUI.IdpConfig> providers = Arrays.asList(
+                new AuthUI.IdpConfig.GoogleBuilder().build());
+
+// Create and launch sign-in intent
+        startActivityForResult(
+                AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setAvailableProviders(providers)
+                        .build(),
+                RC_SIGN_IN);
 
         Helpers.getInstance().bottomNavigatior(this, mOnNavigationItemSelectedListener, 0);
 
@@ -110,7 +128,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 //        LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(locationRequest, null,null);
 
     }
-
 
     @Override
     protected void onStart() {
@@ -264,7 +281,23 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             case 1007:
                 locationProviderClient.getLastLocation().addOnSuccessListener(successfulLocationReceived);
                 break;
-        }
+
+            case RC_SIGN_IN:
+                IdpResponse response = IdpResponse.fromResultIntent(data);
+
+                if (resultCode == RESULT_OK) {
+                    // Successfully signed in
+                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                    // ...
+                } else {
+                    // Sign in failed. If response is null the user canceled the
+                    // sign-in flow using the back button. Otherwise check
+                    // response.getError().getErrorCode() and handle the error.
+                    // ...
+                }
+                break;
+            }
+
     }
 
     public static double distance(double lat1, double lat2, double lon1,
