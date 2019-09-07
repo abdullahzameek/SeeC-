@@ -8,6 +8,8 @@ import androidx.core.app.ActivityCompat;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
 import android.os.Bundle;
 import android.util.SparseArray;
 import android.view.SurfaceHolder;
@@ -23,11 +25,11 @@ import com.google.firebase.ml.vision.barcode.FirebaseVisionBarcodeDetectorOption
 
 import java.io.IOException;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LocationListener {
 
     SurfaceView surfaceView;
     CameraSource cameraSource;
-    TextView resultText;
+    TextView resultText, locationText;
 
     BarcodeDetector barcodeDetector;
 
@@ -38,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
         surfaceView = findViewById(R.id.camera_surface_view);
         resultText = findViewById(R.id.result_text);
+        locationText = findViewById(R.id.location_text);
 
         barcodeDetector = new BarcodeDetector.Builder(this)
                 .setBarcodeFormats(Barcode.QR_CODE).build();
@@ -46,6 +49,11 @@ public class MainActivity extends AppCompatActivity {
 //                .setRequestedPreviewSize(640, 480)
                 .setAutoFocusEnabled(true)
                 .build();
+
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1002);
+        }
 
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
@@ -113,6 +121,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             break;
+
+            case 1002: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                }
+            }
         }
     }
 
@@ -132,5 +145,26 @@ public class MainActivity extends AppCompatActivity {
 //        distance = Math.pow(distance, 2) + Math.pow(height, 2);
 
         return Math.sqrt(distance);
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        String displayString = "Lat: "+location.getLatitude()+"\nLong: "+location.getLongitude();
+        locationText.setText(displayString);
+    }
+
+    @Override
+    public void onStatusChanged(String s, int i, Bundle bundle) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String s) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String s) {
+
     }
 }
