@@ -21,7 +21,22 @@
         android:layout_height="wrap_content"
         android:text="QrCode"
         android:textAlignment="center"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/camera_surface_view" />
+        app:layout_constraintBottom_toTopOf="@+id/location_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/camera_surface_view"
+        app:layout_constraintVertical_bias="0.52" />
+
+    <TextView
+        android:id="@+id/location_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Lat:\nLon:"
+        android:textAlignment="center"
+        app:layout_constraintTop_toBottomOf="@id/result_text"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
