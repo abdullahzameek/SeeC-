@@ -76,10 +76,12 @@ def createCustomerCapitalOne():
         "custID" : custID,
         "first_name": firstName,
         "last_name": " ",
+        "coupons" : ["CouponList"],
         "email" : email,
         "total_credits" : "0",
-        "current_balance": "0"
+        "current_balance": "0"     
     }
+
     cust = CUSTSTATS.push(payload)
     return json.dumps({"cust_ID":custID})
 
@@ -139,6 +141,16 @@ def getCustomerData():
 def getCoupons():
     response = COUPONS.get()
     return(json.dumps(response))
+
+@app.route("/get-customer-coupons", methods=['GET', 'POST'])
+def getCustomerCoupons():
+    print(request.json)
+    custID = request.json['cust_ID']
+    response = CUSTSTATS.order_by_child('custID').equal_to(custID).get()
+    print(response)
+    for key, value in response.items(): 
+        coupons = list(value['coupons'])
+    return(json.dumps(coupons))
 
 
 def getFireBaseID(custID):
