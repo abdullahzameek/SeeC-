@@ -8,6 +8,7 @@ import androidx.core.app.ActivityCompat;
 import android.Manifest;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
@@ -24,6 +25,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.request.RequestOptions;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.common.ConnectionResult;
@@ -46,11 +49,25 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.ml.vision.barcode.FirebaseVisionBarcode;
 import com.google.firebase.ml.vision.barcode.FirebaseVisionBarcodeDetectorOptions;
 
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 public class MainActivity extends AppCompatActivity implements LocationListener {
+
+    public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     private static final int RC_SIGN_IN = 123;
     SurfaceView surfaceView;
@@ -61,10 +78,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     FusedLocationProviderClient locationProviderClient;
 
+    OkHttpClient client;
+
     LocationManager locationManager;
     String provider;
 
     double currentLat, currentLon;
+
+    String URL = "https://navyasuri.pythonanywhere.com";
 
     OnSuccessListener successfulLocationReceived = new OnSuccessListener<Location>() {
         @Override
@@ -97,6 +118,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     RC_SIGN_IN);
         }
 
+        client = new OkHttpClient();
         Helpers.getInstance().bottomNavigatior(this, mOnNavigationItemSelectedListener, 0);
 
 
@@ -296,10 +318,58 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             case RC_SIGN_IN:
                 IdpResponse response = IdpResponse.fromResultIntent(data);
 
+
+
                 if (resultCode == RESULT_OK) {
                     // Successfully signed in
                     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                    Toast.makeText(this, "Hello " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
+
+                    JSONObject payload = new JSONObject();
+                    try {
+                        payload.accumulate("first_name", user.getDisplayName());
+                        payload.accumulate("email", user.getEmail());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    Log.i("ho", payload.toString());
+                    Request request = new Request.Builder()
+                            .url(URL+"/create-new-customer")
+                            .header("Content-Type", "application/json")
+                            .post(RequestBody.create(payload.toString(), JSON))
+                            .build();
+
+                    client.newCall(request).enqueue(new Callback() {
+                        @Override
+                        public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                            e.printStackTrace();
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(MainActivity.this, "FAILED req", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                            if(!response.isSuccessful()){
+
+                            }
+                            else {
+                                String custId = response.body().string();
+                                Toast.makeText(MainActivity.this, custId, Toast.LENGTH_SHORT).show();
+                                SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+                                prefs.edit()
+                                        .putString("custId", custId)
+                                        .apply();
+                            }
+                        }
+                    });
+//                    Toast.makeText(this, "Hello " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
+
+
+
                     // ...
                 } else {
                     // Sign in failed. If response is null the user canceled the
