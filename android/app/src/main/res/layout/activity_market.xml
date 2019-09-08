@@ -22,9 +22,48 @@
         app:menu="@menu/bottom_nav_menu"
         app:itemIconTint="@color/bottom_nav_color"
         app:itemTextColor="@color/bottom_nav_color"
-        >
+         />
 
-    </com.google.android.material.bottomnavigation.BottomNavigationView>
+    <TextView
+        android:id="@+id/market_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:text="Marketplace"
+        android:textColor="#000000"
+        android:textStyle="bold"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@+id/market_recycler_view"
+        app:layout_constraintStart_toStartOf="parent"
+
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/balance_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="5000"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/market_recycler_view"
+        android:textSize="24dp"
+        android:textStyle="bold"
+        android:layout_margin="16dp"
+        android:background="@drawable/rounded_edges"
+        android:backgroundTint="@color/colorPrimary"
+        android:textColor="@color/colorAccent"
+        android:padding="10dp"
+        android:drawableStart="@drawable/ic_profile"/>
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/market_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/nav_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/balance_text"/>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
