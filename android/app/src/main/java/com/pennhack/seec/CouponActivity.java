@@ -3,9 +3,11 @@ package com.pennhack.seec;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -17,77 +19,27 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.GsonBuilder;
 
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 public class CouponActivity extends AppCompatActivity {
 
-    String sb = "[" +
-            "        {" +
-            "            \"id\":1," +
-            "            \"code\":\"gfJgefnk859\"," +
-            "            \"image\":\"https://firebasestorage.googleapis.com/v0/b/seec-pennapps.appspot.com/o/kayak%20Cropped.png?alt=media&token=1d8e76a9-a264-4f2c-8fce-37eb367baa1e\"," +
-            "            \"message\":\"20% off Kayaktour\"," +
-            "            \"price\":43," +
-            "            \"vendor\":\"KayakAdventure\"" +
-            "        }," +
-            "        {" +
-            "            \"id\":2," +
-            "            \"code\":\"gsjhs83HJD6\"," +
-            "            \"image\":\"https://firebasestorage.googleapis.com/v0/b/seec-pennapps.appspot.com/o/smoothie%20Cropped.jpg?alt=media&token=ba36cdd8-1fa8-4df3-8576-0ba807a65911\"," +
-            "            \"message\":\"Buy 1=2!\"," +
-            "            \"price\":25," +
-            "            \"vendor\":\"JuiceBar\"" +
-            "        }," +
-            "        {" +
-            "            \"id\":3," +
-            "            \"code\":\"k568IgFTG47\"," +
-            "            \"image\":\"https://firebasestorage.googleapis.com/v0/b/seec-pennapps.appspot.com/o/subway1%20Cropped.jpg?alt=media&token=0f493653-2319-4ca4-bd63-d2574a27f498\"," +
-            "            \"message\":\"1 free ride\"," +
-            "            \"price\":10," +
-            "            \"vendor\":\"MTR\"" +
-            "        }," +
-            "        {" +
-            "            \"id\":4," +
-            "            \"code\":\"kstu56K8bet\"," +
-            "            \"image\":\"https://firebasestorage.googleapis.com/v0/b/seec-pennapps.appspot.com/o/subway1%20Cropped.jpg?alt=media&token=0f493653-2319-4ca4-bd63-d2574a27f498\"," +
-            "            \"message\":\"50% off next ride\"," +
-            "            \"price\":8," +
-            "            \"vendor\":\"MTR\"" +
-            "        }," +
-            "        {" +
-            "            \"id\":5," +
-            "            \"code\":\"ki98GTB56fg\"," +
-            "            \"image\":\"https://firebasestorage.googleapis.com/v0/b/seec-pennapps.appspot.com/o/starbucks%20Cropped.jpg?alt=media&token=d940e2e0-0850-423b-b95d-53cb1cb6eb9a\"," +
-            "            \"message\":\"30% off\"," +
-            "            \"price\":11," +
-            "            \"vendor\":\"Starbucks\"" +
-            "        }," +
-            "        {" +
-            "            \"id\":6," +
-            "            \"code\":\"kti83gbHY46\"," +
-            "            \"image\":\"https://firebasestorage.googleapis.com/v0/b/seec-pennapps.appspot.com/o/garden%20Cropped.jpg?alt=media&token=df261f91-005f-4e24-92c5-cc7d9e309c45\"," +
-            "            \"message\":\"Free GardFest entrance\"," +
-            "            \"price\":35," +
-            "            \"vendor\":\"GardFest\"" +
-            "        }," +
-            "        {" +
-            "            \"id\":7," +
-            "            \"code\":\"kgiebs893hU\"," +
-            "            \"image\":\"https://firebasestorage.googleapis.com/v0/b/seec-pennapps.appspot.com/o/bagle%20Cropped.jpg?alt=media&token=60f7dd1c-c2e1-4660-97d7-4fec9b1ba442\"," +
-            "            \"message\":\"Free breakfast bagel\"," +
-            "            \"price\":19," +
-            "            \"vendor\":\"BagelTruck\"" +
-            "        }," +
-            "        {" +
-            "            \"id\":8," +
-            "            \"code\":\"koe67BW17uD\"," +
-            "            \"image\":\"https://firebasestorage.googleapis.com/v0/b/seec-pennapps.appspot.com/o/marathon%20Cropped%20(1).jpg?alt=media&token=370314a8-2736-414a-81e1-0410f2f655a5\"," +
-            "            \"message\":\"Free participation\"," +
-            "            \"price\":50," +
-            "            \"vendor\":\"MRTH\"" +
-            "        }" +
-            "    ]";
+    String URL = "https://seecseec.appspot.com";
+    public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+    OkHttpClient client;
 
     RecyclerView marketRecycler;
     MyCouponsAdapter myCouponsAdapter;
@@ -100,8 +52,61 @@ public class CouponActivity extends AppCompatActivity {
 
         Helpers.getInstance().bottomNavigatior(this, mOnNavigationItemSelectedListener, 2);
 
-        Coupon[] coupons = new GsonBuilder().create().fromJson(sb, Coupon[].class);
-        setupRecyclerView(coupons);
+        client = new OkHttpClient();
+
+        Helpers.getInstance().bottomNavigatior(this, mOnNavigationItemSelectedListener, 1);
+
+        JSONObject payload = new JSONObject();
+        try {
+            String custId = getApplicationContext().getSharedPreferences("ABC", 0).getString("custId", null);
+            Log.i("cust", custId);
+            payload.accumulate("cust_ID", custId);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Log.i("pay", payload.toString());
+
+        Request request = new Request.Builder()
+                .url(URL+"/get-customer-coupons")
+                .header("Content-Type", "application/json")
+                .post(RequestBody.create(payload.toString(), JSON))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                e.printStackTrace();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(CouponActivity.this, "FAILED req", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if(!response.isSuccessful()){
+                    Log.i("res", "not success response");
+                }
+                else {
+                    Log.i("res", "success response");
+
+                    Coupon[] coupons = new GsonBuilder().create().fromJson(response.body().string(), Coupon[].class);
+//                    CustomerData data = new GsonBuilder().create().fromJson(response.body().string(), CustomerData.class);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            setupRecyclerView(coupons);
+                        }
+                    });
+
+                }
+            }
+        });
+
+
 
     }
 
