@@ -9,6 +9,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -19,6 +20,7 @@ import android.util.SparseArray;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -57,11 +59,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     BarcodeDetector barcodeDetector;
 
-    GoogleApiClient googleApiClient;
-
     FusedLocationProviderClient locationProviderClient;
 
     LocationManager locationManager;
+    String provider;
 
     double currentLat, currentLon;
 
@@ -87,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
 // Create and launch sign-in intent
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (currentUser==null) {
+        if (currentUser == null) {
             startActivityForResult(
                     AuthUI.getInstance()
                             .createSignInIntentBuilder()
@@ -98,38 +99,30 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         Helpers.getInstance().bottomNavigatior(this, mOnNavigationItemSelectedListener, 0);
 
-//        googleApiClient = new GoogleApiClient.Builder(this)
-//                .addApi(LocationServices.API)
-//                .addConnectionCallbacks(this)
-//                .addOnConnectionFailedListener(this)
-//                .build();
-
 
         surfaceView = findViewById(R.id.camera_surface_view);
         resultText = findViewById(R.id.result_text);
         locationText = findViewById(R.id.location_text);
 
-//        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED){
-//            ActivityCompat.requestPermissions(MainActivity.this,
-//                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1002);
-//        }
-//
-//        LocationRequest locationRequest = new LocationRequest();
-//        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-//        locationRequest.setInterval(1000);
-//        locationRequest.setFastestInterval(1000);
-
         enableLocationSettings();
 
-//        locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        Criteria criteria = new Criteria();
+        criteria.setAccuracy(Criteria.ACCURACY_FINE);
+        criteria.setPowerRequirement(Criteria.POWER_MEDIUM);
+
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 5, this);
+        provider = locationManager.getBestProvider(criteria, true);
+        if (provider == null)
+            Toast.makeText(this, "No location provider", Toast.LENGTH_SHORT).show();
 
-//        LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(locationRequest, null,null);
+        else {
+            locationManager.requestLocationUpdates(provider,
+                    1000, 5, this);
+        }
 
     }
 
@@ -152,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 if (ActivityCompat.checkSelfPermission(getApplicationContext(), android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                     //Request permission
                     ActivityCompat.requestPermissions(MainActivity.this,
-                            new String[]{Manifest.permission.CAMERA},1001);
+                            new String[]{Manifest.permission.CAMERA}, 1001);
                     return;
                 }
 
@@ -185,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
                 SparseArray<Barcode> qrCodes = detections.getDetectedItems();
 
-                if (qrCodes.size()!=0){
+                if (qrCodes.size() != 0) {
                     resultText.setText(qrCodes.valueAt(0).displayValue);
 
                     String coords = qrCodes.valueAt(0).displayValue;
@@ -194,12 +187,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     lat = Double.parseDouble(coordsSplit[0]);
                     lon = Double.parseDouble(coordsSplit[1]);
 
-                    final double dist = distance(lat, lon, currentLat, currentLon);
+                    Location location = getLastKnownLocation();
+                    final double dist = distance(lat, location.getLatitude(),lon,  location.getLongitude());
 
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(MainActivity.this, dist+" is the dist", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MainActivity.this, Math.round(Math.round(dist)) + " is the dist", Toast.LENGTH_SHORT).show();
                         }
                     });
 //                    lat = coords.split("#");
@@ -229,8 +223,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         // startUpdatingLocation(...);
 //                        Log.i("blue", "onSuccess yay");
 //                        locationProviderClient.getLastLocation().addOnSuccessListener(successfulLocationReceived);
-                        String displayString = "Lat: " + currentLat + "\nLong: " + currentLon;
-                        locationText.setText(displayString);
+                        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                            return;
+                        }
+                        Location location = getLastKnownLocation();
+//                        currentLat = location.getLatitude();
+//                        currentLon = location.getLongitude();
+                        if (location != null) {
+                            String displayString = "Lat: " + location.getLatitude() + "\nLong: " + location.getLongitude();
+                            locationText.setText(displayString);
+                        }
 
                     }
                 })
@@ -271,7 +273,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             break;
 
             case 1002: {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
                 }
             }
@@ -281,9 +283,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode){
+        switch (requestCode) {
             case 1007:
-                locationProviderClient.getLastLocation().addOnSuccessListener(successfulLocationReceived);
+                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
+                Location location = getLastKnownLocation();
+                String displayString = "Lat: " + location.getLatitude() + "\nLong: " + location.getLongitude();
+                locationText.setText(displayString);
                 break;
 
             case RC_SIGN_IN:
@@ -292,7 +299,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 if (resultCode == RESULT_OK) {
                     // Successfully signed in
                     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                    Toast.makeText(this, "Hello "+user.getDisplayName(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Hello " + user.getDisplayName(), Toast.LENGTH_SHORT).show();
                     // ...
                 } else {
                     // Sign in failed. If response is null the user canceled the
@@ -301,7 +308,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     // ...
                 }
                 break;
-            }
+        }
 
     }
 
@@ -326,8 +333,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @Override
     public void onLocationChanged(Location location) {
+        Toast.makeText(this, "yo", Toast.LENGTH_SHORT).show();
         currentLat = location.getLatitude();
         currentLon = location.getLongitude();
+        String displayString = "Lat: " + location.getLatitude() + "\nLong: " + location.getLongitude();
+        locationText.setText(displayString);
     }
 
     @Override
@@ -367,7 +377,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     break;
 
             }
-            if (intent!=null) {
+            if (intent != null) {
                 startActivity(intent);
                 overridePendingTransition(0, 0);
                 return true;
@@ -376,8 +386,42 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     };
 
-    @Override
-    protected void onResume() {
-        super.onResume();
+    public void locationCheck(View view) {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Something wrong", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Location location = getLastKnownLocation();
+        if (location != null)
+            Toast.makeText(this, location.toString() + " " + location.getLongitude(), Toast.LENGTH_SHORT).show();
+        else Toast.makeText(this, "NULL", Toast.LENGTH_SHORT).show();
+    }
+
+
+    private Location getLastKnownLocation() {
+        locationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
+        List<String> providers = locationManager.getProviders(true);
+        Location bestLocation = null;
+        for (String provider : providers) {
+            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    Activity#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for Activity#requestPermissions for more details.
+                return null;
+            }
+            Location l = locationManager.getLastKnownLocation(provider);
+            if (l == null) {
+                continue;
+            }
+            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
+                // Found best last known location: %s", l);
+                bestLocation = l;
+            }
+        }
+        return bestLocation;
     }
 }
