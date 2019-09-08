@@ -5,58 +5,143 @@
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#000000"
     tools:context=".ProfileActivity">
 
-
-    <Button
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sign Out"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:onClick="signOutUser"
+        app:layout_constraintStart_toEndOf="@id/top_profile"
+        app:layout_constraintBottom_toTopOf="@id/bottomView"
+        android:text="Mr. Something Someone"
+        android:textColor="#000000"
+        android:elevation="5dp"
+        android:layout_marginStart="8dp"
+        android:textSize="18sp"
         />
 
-    <ProgressBar
-        android:id="@+id/progress_circular"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:background="@drawable/circle_dark"
-        android:progressDrawable="@drawable/progress_circle"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:max="100"
-        android:progress="65"
+    <View
+        android:id="@+id/bottomView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/nav_view"
+        app:layout_constraintTop_toBottomOf="@id/topView"
+        android:background="#000000"
         />
+
+    <View
+        android:id="@+id/topView"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomView"
+        android:background="#FFFFFF"
+        />
+
+<!--    <ProgressBar-->
+<!--        android:id="@+id/progress_circular"-->
+<!--        android:layout_width="200dp"-->
+<!--        android:layout_height="200dp"-->
+<!--        android:background="@drawable/circle_dark"-->
+<!--        android:progressDrawable="@drawable/progress_circle"-->
+<!--        style="?android:attr/progressBarStyleHorizontal"-->
+<!--        android:max="100"-->
+<!--        android:progress="65"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        />-->
 
     <TextView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toTopOf="@id/progress_circular"
-        app:layout_constraintBottom_toBottomOf="@id/progress_circular"
-        android:text="okay"
-        app:layout_constraintEnd_toEndOf="@id/progress_circular"
-        app:layout_constraintStart_toStartOf="@id/progress_circular"
+        android:id="@+id/top_profile"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:background="@drawable/circle_profile"
         android:padding="15dp"
         android:gravity="center"
+        app:layout_constraintStart_toStartOf="parent"
+        android:drawablePadding="15dp"
+        app:layout_constraintTop_toTopOf="parent"
 
+        />
+
+    <Button
+        android:id="@+id/bottom_profile"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_margin="16dp"
+        android:background="@drawable/ic_iconmonstr_log_out_4"
+        android:padding="15dp"
+        android:gravity="center"
+        app:layout_constraintBottom_toTopOf="@id/nav_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/total_credits"
+        android:onClick="signOutUser"
         />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/nav_view"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="0dp"
-        android:layout_marginEnd="0dp"
         android:background="@drawable/rounded_bottom_edges"
         android:backgroundTint="@color/colorPrimary"
+        app:itemIconTint="@color/bottom_nav_color"
+        app:itemTextColor="@color/bottom_nav_color"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:menu="@menu/bottom_nav_menu"
-        app:itemIconTint="@color/bottom_nav_color"
-        app:itemTextColor="@color/bottom_nav_color"
-        />
+        app:menu="@menu/bottom_nav_menu" />
+
+    <TextView
+        android:id="@+id/bal_text"
+        android:layout_width="200dp"
+        android:layout_height="0dp"
+        android:layout_margin="16dp"
+        android:background="@drawable/circle"
+        android:gravity="center"
+        android:text="300 CC\navailable"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="32sp"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/top_profile" />
+
+    <TextView
+        android:id="@+id/available_coupons"
+        android:layout_width="200dp"
+        android:layout_height="0dp"
+        android:layout_margin="16dp"
+        android:background="@drawable/circle"
+        android:gravity="center"
+        android:text="20\nused\ncoupons"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="32sp"
+        app:layout_constraintBottom_toTopOf="@+id/nav_view"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/top_profile"
+        app:layout_constraintVertical_bias="0.76" />
+
+    <TextView
+        android:id="@+id/total_credits"
+        android:layout_width="200dp"
+        android:layout_height="0dp"
+        android:layout_margin="16dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="510dp"
+        android:background="@drawable/circle"
+        android:gravity="center"
+        android:text="3000\ncarbon\ncredits"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="32sp"
+        app:layout_constraintBottom_toTopOf="@+id/nav_view"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/bottomView"
+        app:layout_constraintVertical_bias="0.44" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
