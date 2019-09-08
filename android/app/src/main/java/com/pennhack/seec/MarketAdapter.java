@@ -53,6 +53,7 @@ public class MarketAdapter extends RecyclerView.Adapter<MarketAdapter.MyViewHold
                 .load(coupon.image)
                 .apply(requestOptions)
                 .into(holder.imageView);
+        holder.vendorText.setText(coupon.vendor);
 
 
     }
@@ -71,6 +72,7 @@ public class MarketAdapter extends RecyclerView.Adapter<MarketAdapter.MyViewHold
         public ImageView imageView;
         public TextView costText;
         public FloatingActionButton buyButton;
+        public TextView vendorText;
 
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -79,6 +81,7 @@ public class MarketAdapter extends RecyclerView.Adapter<MarketAdapter.MyViewHold
             imageView = itemView.findViewById(R.id.coupon_image_view);
             costText = itemView.findViewById(R.id.cost_text);
             buyButton = itemView.findViewById(R.id.buy_button);
+            vendorText = itemView.findViewById(R.id.vendor_text);
 
             itemView.setTag(this);
             itemView.setOnClickListener(mOnItemClickListener);
