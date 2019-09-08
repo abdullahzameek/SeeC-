@@ -149,7 +149,7 @@ def getCustomerCoupons():
     response = CUSTSTATS.order_by_child('custID').equal_to(custID).get()
     print(response)
     for key, value in response.items(): 
-        coupons = list(value['coupons'])
+        coupons = value['coupons']
     return(json.dumps(coupons))
 
 
@@ -161,13 +161,31 @@ def getFireBaseID(custID):
         print("the key is ",key)
     return fireBaseID
 
-def addCustBalanceOne(accountID, amount):
+
+def getAccountID(custID):
+    url = 'http://api.reimaginebanking.com/customers/{}/accounts?key={}'.format(custID,capitalOneAPIKey)
+    response = requests.get(url)
+    json_data = json.loads(response.text)
+    print(json_data[0]['_id'])
+
+    if response.status_code == 404:
+	    print('Couldnt retrieve ID')
+    return json_data[0]['_id']
+
+@app.route("/add-balance", methods=['POST'])
+def addCustBalanceOne():
+    print(request.json)
+    custID = request.json['cust_ID']
+    amount = request.json['amount']
+
+    accountID = getAccountID(custID)
+
     url = 'http://api.reimaginebanking.com/accounts/{}/deposits?key={}'.format(accountID,capitalOneAPIKey)
     payload = {
         "medium": "balance",
         "transaction_date": str(date.today()),
         "status": "completed",
-        "amount" : amount,
+        "amount" : int(amount),
         "description": "Amount earned in Carbon Credits"
     }
     response = requests.post( 
@@ -182,8 +200,8 @@ def addCustBalanceOne(accountID, amount):
     
     custID = getCustfromAcc(accountID)
     print("the customer id is ", custID)
-    firebaseId = getFireBaseID(custID)
-    #print("the firebase id is ", fireBaseID)
+    fireBaseID = getFireBaseID(custID)
+    print("the firebase id is ", fireBaseID)
     
 
     response = CUSTSTATS.order_by_child('custID').equal_to(custID).get()
@@ -192,12 +210,37 @@ def addCustBalanceOne(accountID, amount):
         cur_bal = value['current_balance']
         print("the current balance is ",value['current_balance'])
         finalamount = int(amount) + int(cur_bal)
-    CUSTSTATS.child(firebaseId).update({"current_balance": str(finalamount)})
-    CUSTSTATS.child(firebaseId).update({"total_credits": str(finalamount)})
+    CUSTSTATS.child(fireBaseID).update({"current_balance": str(finalamount)})
+    CUSTSTATS.child(fireBaseID).update({"total_credits": str(finalamount)})
     #response = CUSTSTATS.order_by_child('custID').equal_to(custID).get()
     # print(response)
+    return("Adding to customer account")
 
-def subCustBalanceOne(accountID,amount):
+
+def getCouponValue(couponID):
+    response = COUPONS.order_by_child('id').equal_to(couponID).get()
+    print(response)
+    for key, value in response.items(): 
+        v = value['price']
+    return(v)
+
+def getCoupon(couponID):
+    response = COUPONS.order_by_child('id').equal_to(couponID).get()
+    return(response)
+
+
+@app.route("/make-purchase", methods=['POST'])
+def subCustBalanceOne():
+    print(request.json)
+    custID = request.json['cust_ID']
+    couponID = request.json['id']
+    print("The coupon code is ", couponID)
+    amount = int(getCouponValue(couponID))
+    print("The amount code is ", amount)
+    accountID  = getAccountID(custID)
+    newCoupon = getCoupon(couponID)
+    print("The new coupon code is ", newCoupon)
+
     url = 'http://api.reimaginebanking.com/accounts/{}/withdrawals?key={}'.format(accountID,capitalOneAPIKey)
     payload = {
         "medium": "balance",
@@ -226,10 +269,14 @@ def subCustBalanceOne(accountID,amount):
     print(response)
     for key, value in response.items(): 
         cur_bal = value['current_balance']
+        coupons = value['coupons']
+        coupons.append(newCoupon)
         print("the current balance is ",value['current_balance'])
         finalamount = int(cur_bal) - int(amount)
     CUSTSTATS.child(firebaseId).update({"current_balance": str(finalamount)})
+    CUSTSTATS.child(firebaseId).update({"coupons": coupons})
 
+    return("Subtracted and added coupons")
 
 def viewCustBalance(customerID):
     url = 'http://api.reimaginebanking.com/customers/{}/accounts?key={}'.format(customerID,capitalOneAPIKey)
@@ -283,10 +330,10 @@ def getMerchantByID(merchantID):
 
 
 
-#if __name__ == "__main__":
+if __name__ == "__main__":
 #    createCustomerCapitalOne("Abdullah", "Zameek", "arz268@nyu.edu")
 #     #createCustAccount("5d7413923c8c2216c9fcadfe")
-#     #getAllAccounts()
+    getAllAccounts()
 #     #addCustBalanceOne("5d7413b23c8c2216c9fcae00", 100000)
 #     # addCustBalanceOne("5d7413b23c8c2216c9fcae00", 150000)
 #     # addCustBalanceOne("5d74182c3c8c2216c9fcae1b", 250000)
