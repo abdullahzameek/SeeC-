@@ -87,8 +87,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     String provider;
 
     boolean checkedIn = false;
+    boolean distanceCalculated= false;
 
-    double currentLat, currentLon;
+    float currentLat, currentLon;
+
+    float distanceTravelled = 0f;
+
 
     String URL = "https://seecseec.appspot.com";
 
@@ -98,8 +102,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             if (location == null)
                 Toast.makeText(MainActivity.this, "location null", Toast.LENGTH_SHORT).show();
             else {
-                String displayString = "Lat: " + location.getLatitude() + "\nLong: " + location.getLongitude();
-                locationText.setText(displayString);
+//                String displayString = "Lat: " + location.getLatitude() + "\nLong: " + location.getLongitude();
+//                locationText.setText(displayString);
             }
         }
     };
@@ -207,31 +211,54 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 SparseArray<Barcode> qrCodes = detections.getDetectedItems();
 
                 if (qrCodes.size() != 0) {
-                    resultText.setText(qrCodes.valueAt(0).displayValue);
+//                    resultText.setText(qrCodes.valueAt(0).displayValue);
 
                     String coords = qrCodes.valueAt(0).displayValue;
-                    double lat=currentLat, lon=currentLon;
+                    float lat=currentLat, lon=currentLon;
                     try {
                         String[] coordsSplit = coords.split("#");
-                        lat = Double.parseDouble(coordsSplit[0]);
-                        lon = Double.parseDouble(coordsSplit[1]);
-                        if (checkedIn){
-                            checkOutButton.setEnabled(true);
+                        lat = Float.parseFloat(coordsSplit[0]);
+                        lon = Float.parseFloat(coordsSplit[1]);
+
+                        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+                        if (!prefs.contains("lastLat") && !checkedIn){
+                            prefs.edit()
+                                    .putFloat("lastLat", lat)
+                                    .putFloat("lastLon", lon)
+                                    .apply();
+                            checkedIn = true;
                         }
+                        else if (prefs.getFloat("lastLat", Float.NEGATIVE_INFINITY)!=lat && checkedIn && !distanceCalculated) {
+
+                            distanceCalculated = true;
+                            distanceTravelled = distance(prefs.getFloat("lastLat",  Float.NEGATIVE_INFINITY), lat, prefs.getFloat("lastLon", Float.NEGATIVE_INFINITY), lon);
+                            // New Location
+                            Log.i("dist", ""+distanceTravelled);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(MainActivity.this, "Distance "+distanceTravelled, Toast.LENGTH_SHORT).show();
+                                    checkOutButton.setEnabled(true);
+                                }
+                            });
+
+                            prefs.edit()
+                                    .remove("lastLat")
+                                    .remove("lastLon")
+                                    .apply();
+
+                        }
+
+//                        if (checkedIn){
+//                            checkOutButton.setEnabled(true);
+//                        }
                     }
                     catch (Exception e){
                         e.printStackTrace();
                     }
-                    Location location = getLastKnownLocation();
-                    final double dist = distance(lat, location.getLatitude(),lon,  location.getLongitude());
+//                    Location location = getLastKnownLocation();
+//                    final float dist = distance(lat, (float)location.getLatitude(),lon,  (float)location.getLongitude());
 
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(MainActivity.this, Math.round(Math.round(dist)) + " is the dist", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-//                    lat = coords.split("#");
                 }
 
             }
@@ -265,8 +292,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 //                        currentLat = location.getLatitude();
 //                        currentLon = location.getLongitude();
                         if (location != null) {
-                            String displayString = "Lat: " + location.getLatitude() + "\nLong: " + location.getLongitude();
-                            locationText.setText(displayString);
+//                            String displayString = "Lat: " + location.getLatitude() + "\nLong: " + location.getLongitude();
+//                            locationText.setText(displayString);
                         }
 
                     }
@@ -324,8 +351,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     return;
                 }
                 Location location = getLastKnownLocation();
-                String displayString = "Lat: " + location.getLatitude() + "\nLong: " + location.getLongitude();
-                locationText.setText(displayString);
+//                String displayString = "Lat: " + location.getLatitude() + "\nLong: " + location.getLongitude();
+//                locationText.setText(displayString);
                 break;
 
             case RC_SIGN_IN:
@@ -395,8 +422,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     }
 
-    public static double distance(double lat1, double lat2, double lon1,
-                                  double lon2) {
+    public static float distance(float lat1, float lat2, float lon1,
+                                  float lon2) {
 
         final int R = 6371; // Radius of the earth
 
@@ -410,17 +437,17 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
 //        distance = Math.pow(distance, 2) + Math.pow(height, 2);
 
-        return distance;
+        return (float)distance;
 //        return Math.sqrt(distance);
     }
 
     @Override
     public void onLocationChanged(Location location) {
         Toast.makeText(this, "yo", Toast.LENGTH_SHORT).show();
-        currentLat = location.getLatitude();
-        currentLon = location.getLongitude();
-        String displayString = "Lat: " + location.getLatitude() + "\nLong: " + location.getLongitude();
-        locationText.setText(displayString);
+        currentLat = (float)location.getLatitude();
+        currentLon = (float)location.getLongitude();
+//        String displayString = "Lat: " + location.getLatitude() + "\nLong: " + location.getLongitude();
+//        locationText.setText(displayString);
     }
 
     @Override
@@ -509,24 +536,27 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
     public void checkOutButtonClicked(View view) {
-        SharedPreferences prefs=getPreferences(MODE_PRIVATE);
-        float lat = prefs.getFloat("lastLat", 0f);
-        float lon = prefs.getFloat("lastLon", 0f);
+//        SharedPreferences prefs=getPreferences(MODE_PRIVATE);
+//        float lat = prefs.getFloat("lastLat", 0f);
+//        float lon = prefs.getFloat("lastLon", 0f);
+//
+//        Location location = getLastKnownLocation();
+////        int dist = Math.round(Math.round(distance(lat, (float)location.getLatitude(), lon, (float)location.getLongitude())));
+//        float dist = distance(lat, (float)location.getLatitude(), lon, (float)location.getLongitude());
+//        int credits = (int)dist/500;
 
-        Location location = getLastKnownLocation();
-        int dist = Math.round(Math.round(distance(lat, location.getLatitude(), lon, location.getLongitude())));
-        double credits = dist/500;
 
+        int credits = (int)distanceTravelled/50;
         JSONObject payload = new JSONObject();
         try {
             payload.accumulate("cust_ID", getPreferences(MODE_PRIVATE).getString("custId", null));
-            payload.accumulate("amount", Double.toString(credits));
+            payload.accumulate("amount", Integer.toString(credits));
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         Request request = new Request.Builder()
-                .url(URL+"/create-new-customer")
+                .url(URL+"/add-balance")
                 .header("Content-Type", "application/json")
                 .post(RequestBody.create(payload.toString(), JSON))
                 .build();
@@ -546,19 +576,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if(!response.isSuccessful()){
-
+                    Log.i("res", "not success response");
                 }
                 else {
-                    String custId = response.body().string();
-                    Log.i("cust", custId);
-                    SharedPreferences prefs = getPreferences(MODE_PRIVATE);
-                    prefs.edit()
-                            .putString("custId", custId)
-                            .apply();
+                    Log.i("res", "success response");
+                    startActivity(new Intent(MainActivity.this, ProfileActivity.class));
                 }
             }
         });
-
-        startActivity(new Intent(MainActivity.this, ProfileActivity.class));
     }
 }
