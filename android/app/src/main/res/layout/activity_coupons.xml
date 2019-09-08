@@ -21,10 +21,32 @@
         app:menu="@menu/bottom_nav_menu"
         app:itemIconTint="@color/bottom_nav_color"
         app:itemTextColor="@color/bottom_nav_color"
-        android:backgroundTint="@color/colorPrimary"
-        >
+        android:backgroundTint="@color/colorPrimary"/>
 
-    </com.google.android.material.bottomnavigation.BottomNavigationView>
+    <TextView
+        android:id="@+id/my_coupon_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="My Coupons"
+        android:textColor="#000000"
+        android:textStyle="bold"
+        android:textSize="28sp"
+        app:layout_constraintBottom_toTopOf="@+id/market_recycler_view"
+        app:layout_constraintStart_toStartOf="parent"
+
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/market_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/nav_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/my_coupon_text"/>
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -53,7 +53,8 @@
         android:backgroundTint="@color/colorPrimary"
         android:textColor="@color/colorAccent"
         android:padding="10dp"
-        android:drawableStart="@drawable/ic_profile"/>
+        android:drawableStart="@drawable/ic_carbon"
+        android:drawablePadding="8dp"/>
 
 
     <androidx.recyclerview.widget.RecyclerView
