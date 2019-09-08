@@ -3,7 +3,6 @@ package com.pennhack.seec;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -11,16 +10,13 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import org.w3c.dom.Text;
-
 import java.util.List;
 
-public class MarketAdapter extends RecyclerView.Adapter<MarketAdapter.MyViewHolder> {
+public class MyCouponsAdapter extends RecyclerView.Adapter<MyCouponsAdapter.MyViewHolder> {
 
     RequestOptions requestOptions = new RequestOptions();
     private ItemClickListener mClickListener;
@@ -28,7 +24,7 @@ public class MarketAdapter extends RecyclerView.Adapter<MarketAdapter.MyViewHold
     private List<Coupon> mTestItemList;
     private View.OnClickListener mOnItemClickListener;
 
-    public MarketAdapter(List<Coupon> testItemList) {
+    public MyCouponsAdapter(List<Coupon> testItemList) {
         this.mTestItemList = testItemList;
     }
 
@@ -36,7 +32,7 @@ public class MarketAdapter extends RecyclerView.Adapter<MarketAdapter.MyViewHold
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
-        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.market_coupon_recycleable, parent, false);
+        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.my_coupon_recycleable, parent, false);
         itemView.setOnClickListener(mOnItemClickListener);
         return new MyViewHolder(itemView);
 
@@ -47,14 +43,12 @@ public class MarketAdapter extends RecyclerView.Adapter<MarketAdapter.MyViewHold
 
         Coupon coupon = mTestItemList.get(position);
         holder.message.setText(coupon.message);
-        holder.costText.setText(Integer.toString(coupon.price));
         requestOptions = requestOptions.transform(new RoundedCorners(30));
         Glide.with(holder.imageView)
                 .load(coupon.image)
                 .apply(requestOptions)
                 .into(holder.imageView);
         holder.vendorText.setText(coupon.vendor);
-
 
     }
 
