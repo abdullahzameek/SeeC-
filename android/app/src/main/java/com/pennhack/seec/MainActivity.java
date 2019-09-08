@@ -220,7 +220,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         lat = Float.parseFloat(coordsSplit[0]);
                         lon = Float.parseFloat(coordsSplit[1]);
 
-                        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+                        SharedPreferences prefs = getApplicationContext().getSharedPreferences("ABC", 0);
                         if (!prefs.contains("lastLat") && !checkedIn){
                             prefs.edit()
                                     .putFloat("lastLat", lat)
@@ -399,7 +399,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             else {
                                 String custId = response.body().string();
                                 Log.i("cust", custId);
-                                SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+                                SharedPreferences prefs = getApplicationContext().getSharedPreferences("ABC", 0);
                                 prefs.edit()
                                         .putString("custId", custId)
                                         .apply();
@@ -549,7 +549,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         int credits = (int)distanceTravelled/50;
         JSONObject payload = new JSONObject();
         try {
-            payload.accumulate("cust_ID", getPreferences(MODE_PRIVATE).getString("custId", null));
+            payload.accumulate("cust_ID", getApplicationContext().getSharedPreferences("ABC", 0).getString("custId", null));
             payload.accumulate("amount", Integer.toString(credits));
         } catch (JSONException e) {
             e.printStackTrace();

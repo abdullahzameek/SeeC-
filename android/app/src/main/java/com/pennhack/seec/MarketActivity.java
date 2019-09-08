@@ -114,11 +114,15 @@ public class MarketActivity extends AppCompatActivity {
 
                                 JSONObject payload = new JSONObject();
                                 try {
-                                    payload.accumulate("cust_ID", getPreferences(MODE_PRIVATE).getString("custId", null));
-                                    payload.accumulate("id", coupon. id);
+                                    String custId = getApplicationContext().getSharedPreferences("ABC", 0).getString("custId", null);
+                                    Log.i("cust", custId);
+                                    payload.accumulate("cust_ID", custId);
+                                    payload.accumulate("id", coupon.id);
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
+
+                                Log.i("pay", payload.toString());
 
                                 Request request = new Request.Builder()
                                         .url(URL+"/make-purchase")
