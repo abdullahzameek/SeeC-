@@ -1,4 +1,5 @@
 import flask
+from flask import request
 from datetime import date
 import firebase_admin
 from firebase_admin import db
@@ -16,6 +17,7 @@ firebase_admin.initialize_app(cred, {
 })
 
 CUSTSTATS = db.reference('custstats')
+COUPONS = db.reference('coupons')
 
 currentLast = "5d7324c3322fa016762f2fce"
 
@@ -31,52 +33,55 @@ def getAllCustomers():
     if response.status_code == 404:
 	    print('Couldnt retrieve all the customer data')
 
+
 def getLastCustomer():
     url = 'http://api.reimaginebanking.com/customers?key={}'.format(capitalOneAPIKey)
     response = requests.get(url)
     json_data = json.loads(response.text)
     return json_data[-1]['_id']
 
-def createCustomerCapitalOne(firstName, lastName, email):
+@app.route("/create-new-customer", methods=['POST'])
+def createCustomerCapitalOne():
+    print(request.json)
+    # for key, val in request.json: print(key, val)
+    firstName = request.json['first_name']
+    email = request.json['email']
     url = 'http://api.reimaginebanking.com/customers?key={}'.format(capitalOneAPIKey)
     payload = {
     "first_name": firstName,
-    "last_name": lastName,
+    "last_name": " ",
     "address": {
-        "street_number": "defaultNum",
-        "street_name": "defaultStreetName",
-        "city": "defaultCity",
+        "street_number": "string",
+        "street_name": "string",
+        "city": "string",
         "state": "SC",
         "zip": "00000"
-        }
     }
+}
 
     response = requests.post( 
 	    url, 
 	    data=json.dumps(payload),
 	    headers={'content-type':'application/json'},
 	)
+
     print(response.status_code)
     if response.status_code == 201:
 	    print('account created')
 
     custID = getLastCustomer()
+    createCustAccount(custID)
 
     payload = {
         "custID" : custID,
         "first_name": firstName,
-        "last_name": lastName,
+        "last_name": " ",
         "email" : email,
         "total_credits" : "0",
         "current_balance": "0"
     }
     cust = CUSTSTATS.push(payload)
-    # print(custID)
-    # response = CUSTSTATS.order_by_child('custID').equal_to(custID).get()
-    # print(response)
-    # for key, value in response.items(): 
-    #     fireBaseID = key
-    # print(fireBaseID) 
+    return json.dumps({"cust_ID":custID})
 
 def getAllAccounts():
     url = 'http://api.reimaginebanking.com/accounts?key={}'.format(capitalOneAPIKey)
@@ -103,6 +108,7 @@ def getCustfromAcc(accountID):
     res = getAccountByID(accountID)
     return res['customer_id']
 
+
 def createCustAccount(customerID):
     url = 'http://api.reimaginebanking.com/customers/{}/accounts?key={}'.format(customerID,capitalOneAPIKey)
     payload = {
@@ -119,6 +125,21 @@ def createCustAccount(customerID):
 
     if response.status_code == 201:
 	    print('account created')
+
+@app.route("/get-customer-data", methods=['POST'])
+def getCustomerData():
+    print(request.json)
+    custID = request.json['cust_ID']
+    response = CUSTSTATS.order_by_child('custID').equal_to(custID).get()
+    for key, value in response.items():
+        print(value)
+    return(value)   
+
+@app.route("/get-coupons", methods=['GET'])
+def getCoupons():
+    response = COUPONS.get()
+    return(json.dumps(response))
+
 
 def getFireBaseID(custID):
     fireBaseID = ""
@@ -250,16 +271,18 @@ def getMerchantByID(merchantID):
 
 
 
-if __name__ == "__main__":
-    #createCustomerCapitalOne("Abdullah", "Zameek", "arz268@nyu.edu")
-    #createCustAccount("5d7413923c8c2216c9fcadfe")
-    #getAllAccounts()
-    #addCustBalanceOne("5d7413b23c8c2216c9fcae00", 100000)
-    # addCustBalanceOne("5d7413b23c8c2216c9fcae00", 150000)
-    # addCustBalanceOne("5d74182c3c8c2216c9fcae1b", 250000)
-    createCustAccount("5d7414453c8c2216c9fcae04")
-    addCustBalanceOne("5d74182c3c8c2216c9fcae1b", 475000)
-    subCustBalanceOne("5d74182c3c8c2216c9fcae1b", 250000)
-    addCustBalanceOne("5d74182c3c8c2216c9fcae1b", 2500)
-    subCustBalanceOne("5d74182c3c8c2216c9fcae1b", 35000)
-    #getAllAccounts()
+#if __name__ == "__main__":
+#    createCustomerCapitalOne("Abdullah", "Zameek", "arz268@nyu.edu")
+#     #createCustAccount("5d7413923c8c2216c9fcadfe")
+#     #getAllAccounts()
+#     #addCustBalanceOne("5d7413b23c8c2216c9fcae00", 100000)
+#     # addCustBalanceOne("5d7413b23c8c2216c9fcae00", 150000)
+#     # addCustBalanceOne("5d74182c3c8c2216c9fcae1b", 250000)
+#     createCustAccount("5d7414453c8c2216c9fcae04")
+#     addCustBalanceOne("5d74182c3c8c2216c9fcae1b", 475000)
+#     subCustBalanceOne("5d74182c3c8c2216c9fcae1b", 250000)
+#     addCustBalanceOne("5d74182c3c8c2216c9fcae1b", 2500)
+#     subCustBalanceOne("5d74182c3c8c2216c9fcae1b", 35000)
+#getAllAccounts()
+# if __name__ == "__main__":
+#     getCoupons()
