@@ -86,12 +86,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 new AuthUI.IdpConfig.GoogleBuilder().build());
 
 // Create and launch sign-in intent
-        startActivityForResult(
-                AuthUI.getInstance()
-                        .createSignInIntentBuilder()
-                        .setAvailableProviders(providers)
-                        .build(),
-                RC_SIGN_IN);
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser==null) {
+            startActivityForResult(
+                    AuthUI.getInstance()
+                            .createSignInIntentBuilder()
+                            .setAvailableProviders(providers)
+                            .build(),
+                    RC_SIGN_IN);
+        }
 
         Helpers.getInstance().bottomNavigatior(this, mOnNavigationItemSelectedListener, 0);
 
@@ -100,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 //                .addConnectionCallbacks(this)
 //                .addOnConnectionFailedListener(this)
 //                .build();
+
 
         surfaceView = findViewById(R.id.camera_surface_view);
         resultText = findViewById(R.id.result_text);
@@ -288,6 +292,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 if (resultCode == RESULT_OK) {
                     // Successfully signed in
                     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                    Toast.makeText(this, "Hello "+user.getDisplayName(), Toast.LENGTH_SHORT).show();
                     // ...
                 } else {
                     // Sign in failed. If response is null the user canceled the
@@ -370,4 +375,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             return false;
         }
     };
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
 }
