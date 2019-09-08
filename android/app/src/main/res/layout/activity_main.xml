@@ -15,28 +15,28 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/result_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="QrCode"
-        android:textAlignment="center"
-        app:layout_constraintBottom_toTopOf="@+id/location_text"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/camera_surface_view"
-        app:layout_constraintVertical_bias="0.52" />
+<!--    <TextView-->
+<!--        android:id="@+id/result_text"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="QrCode"-->
+<!--        android:textAlignment="center"-->
+<!--        app:layout_constraintBottom_toTopOf="@+id/location_text"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/camera_surface_view"-->
+<!--        app:layout_constraintVertical_bias="0.52" />-->
 
-    <TextView
-        android:id="@+id/location_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Lat:\nLon:"
-        android:textAlignment="center"
-        app:layout_constraintBottom_toTopOf="@+id/nav_view"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/result_text" />
+<!--    <TextView-->
+<!--        android:id="@+id/location_text"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="Lat:\nLon:"-->
+<!--        android:textAlignment="center"-->
+<!--        app:layout_constraintBottom_toTopOf="@+id/nav_view"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/result_text" />-->
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/nav_view"
@@ -53,13 +53,22 @@
         />
 
     <Button
+        android:id="@+id/checkout_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Loc"
+        android:text="Checkout"
+        android:background="@drawable/rounded_edges"
+        android:backgroundTint="@color/colorPrimaryDark"
         app:layout_constraintBottom_toTopOf="@id/nav_view"
         app:layout_constraintEnd_toEndOf="parent"
-        android:onClick="locationCheck"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/camera_surface_view"
+        android:padding="20dp"
+        android:onClick="checkOutButtonClicked"
+        android:enabled="false"
         />
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

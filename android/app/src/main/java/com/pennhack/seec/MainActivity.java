@@ -22,6 +22,7 @@ import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -76,6 +77,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     BarcodeDetector barcodeDetector;
 
+    Button checkOutButton;
+
     FusedLocationProviderClient locationProviderClient;
 
     OkHttpClient client;
@@ -83,9 +86,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     LocationManager locationManager;
     String provider;
 
+    boolean checkedIn = false;
+
     double currentLat, currentLon;
 
-    String URL = "https://navyasuri.pythonanywhere.com";
+    String URL = "https://seecseec.appspot.com";
 
     OnSuccessListener successfulLocationReceived = new OnSuccessListener<Location>() {
         @Override
@@ -123,8 +128,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
 
         surfaceView = findViewById(R.id.camera_surface_view);
-        resultText = findViewById(R.id.result_text);
-        locationText = findViewById(R.id.location_text);
+//        resultText = findViewById(R.id.result_text);
+//        locationText = findViewById(R.id.location_text);
+        checkOutButton = findViewById(R.id.checkout_button);
 
         enableLocationSettings();
 
@@ -204,11 +210,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     resultText.setText(qrCodes.valueAt(0).displayValue);
 
                     String coords = qrCodes.valueAt(0).displayValue;
-                    double lat, lon;
-                    String[] coordsSplit = coords.split("#");
-                    lat = Double.parseDouble(coordsSplit[0]);
-                    lon = Double.parseDouble(coordsSplit[1]);
-
+                    double lat=currentLat, lon=currentLon;
+                    try {
+                        String[] coordsSplit = coords.split("#");
+                        lat = Double.parseDouble(coordsSplit[0]);
+                        lon = Double.parseDouble(coordsSplit[1]);
+                        if (checkedIn){
+                            checkOutButton.setEnabled(true);
+                        }
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
                     Location location = getLastKnownLocation();
                     final double dist = distance(lat, location.getLatitude(),lon,  location.getLongitude());
 
@@ -358,7 +371,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             }
                             else {
                                 String custId = response.body().string();
-                                Toast.makeText(MainActivity.this, custId, Toast.LENGTH_SHORT).show();
+                                Log.i("cust", custId);
                                 SharedPreferences prefs = getPreferences(MODE_PRIVATE);
                                 prefs.edit()
                                         .putString("custId", custId)
@@ -493,5 +506,59 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
         }
         return bestLocation;
+    }
+
+    public void checkOutButtonClicked(View view) {
+        SharedPreferences prefs=getPreferences(MODE_PRIVATE);
+        float lat = prefs.getFloat("lastLat", 0f);
+        float lon = prefs.getFloat("lastLon", 0f);
+
+        Location location = getLastKnownLocation();
+        int dist = Math.round(Math.round(distance(lat, location.getLatitude(), lon, location.getLongitude())));
+        double credits = dist/500;
+
+        JSONObject payload = new JSONObject();
+        try {
+            payload.accumulate("cust_ID", getPreferences(MODE_PRIVATE).getString("custId", null));
+            payload.accumulate("amount", Double.toString(credits));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Request request = new Request.Builder()
+                .url(URL+"/create-new-customer")
+                .header("Content-Type", "application/json")
+                .post(RequestBody.create(payload.toString(), JSON))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                e.printStackTrace();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, "FAILED req", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if(!response.isSuccessful()){
+
+                }
+                else {
+                    String custId = response.body().string();
+                    Log.i("cust", custId);
+                    SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+                    prefs.edit()
+                            .putString("custId", custId)
+                            .apply();
+                }
+            }
+        });
+
+        startActivity(new Intent(MainActivity.this, ProfileActivity.class));
     }
 }
