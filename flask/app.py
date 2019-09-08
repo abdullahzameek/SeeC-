@@ -76,7 +76,14 @@ def createCustomerCapitalOne():
         "custID" : custID,
         "first_name": firstName,
         "last_name": " ",
-        "coupons" : ["CouponList"],
+        "coupons" : [{
+            "id":5,
+            "code":"ki98GTB56fg",
+            "image":"https://firebasestorage.googleapis.com/v0/b/seec-pennapps.appspot.com/o/starbucks%20Cropped.jpg?alt=media&token=d940e2e0-0850-423b-b95d-53cb1cb6eb9a",
+            "message":"30% off",
+            "price":11,
+            "vendor":"Starbucks"
+        }],
         "email" : email,
         "total_credits" : "0",
         "current_balance": "0"     
