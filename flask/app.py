@@ -233,7 +233,11 @@ def getCouponValue(couponID):
 
 def getCoupon(couponID):
     response = COUPONS.order_by_child('id').equal_to(couponID).get()
-    return(response)
+    print("This is rhe repsonse")
+    i = str(next(iter(response)))
+    print(response[i])
+
+    return response[i]
 
 
 @app.route("/make-purchase", methods=['POST'])
