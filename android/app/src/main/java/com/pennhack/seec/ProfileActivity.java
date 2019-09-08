@@ -5,12 +5,14 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.gson.GsonBuilder;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -39,11 +41,18 @@ public class ProfileActivity extends AppCompatActivity {
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     OkHttpClient client;
 
+    TextView balance, total, aCoupons;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
+        client = new OkHttpClient();
+
+        balance = findViewById(R.id.bal_text);
+        total = findViewById(R.id.total_credits);
+        aCoupons = findViewById(R.id.available_coupons);
         Helpers.getInstance().bottomNavigatior(this, mOnNavigationItemSelectedListener, 1);
 
         JSONObject payload = new JSONObject();
@@ -82,6 +91,12 @@ public class ProfileActivity extends AppCompatActivity {
                 }
                 else {
                     Log.i("res", "success response");
+
+                    CustomerData data = new GsonBuilder().create().fromJson(response.body().string(), CustomerData.class);
+
+                    balance.setText(data.current_balance+ " CC\navailable");
+                    total.setText(data.total_credits+ "\ntotal\ncredits");
+                    aCoupons.setText(data.coupons.size()+"\ncoupons\ncollected");
 
                 }
             }
