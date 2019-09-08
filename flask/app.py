@@ -83,7 +83,7 @@ def createCustomerCapitalOne():
     }
 
     cust = CUSTSTATS.push(payload)
-    return json.dumps({"cust_ID":custID})
+    return custID
 
 def getAllAccounts():
     url = 'http://api.reimaginebanking.com/accounts?key={}'.format(capitalOneAPIKey)
@@ -330,10 +330,10 @@ def getMerchantByID(merchantID):
 
 
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
 #    createCustomerCapitalOne("Abdullah", "Zameek", "arz268@nyu.edu")
 #     #createCustAccount("5d7413923c8c2216c9fcadfe")
-    getAllAccounts()
+#    getAllAccounts()
 #     #addCustBalanceOne("5d7413b23c8c2216c9fcae00", 100000)
 #     # addCustBalanceOne("5d7413b23c8c2216c9fcae00", 150000)
 #     # addCustBalanceOne("5d74182c3c8c2216c9fcae1b", 250000)
