@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -80,6 +81,57 @@ public class MarketActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
+            }
+        });
+
+
+        JSONObject payload = new JSONObject();
+        try {
+            String custId = getApplicationContext().getSharedPreferences("ABC", 0).getString("custId", null);
+            Log.i("cust", custId);
+            payload.accumulate("cust_ID", custId);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Log.i("pay", payload.toString());
+
+        Request request = new Request.Builder()
+                .url(URL+"/get-customer-data")
+                .header("Content-Type", "application/json")
+                .post(RequestBody.create(payload.toString(), JSON))
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                e.printStackTrace();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MarketActivity.this, "FAILED req", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if(!response.isSuccessful()){
+                    Log.i("res", "not success response");
+                }
+                else {
+                    Log.i("res", "success response");
+
+                    CustomerData data = new GsonBuilder().create().fromJson(response.body().string(), CustomerData.class);
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ((TextView)findViewById(R.id.balance_text)).setText(data.current_balance);
+                        }
+                    });
+
+                }
             }
         });
 
