@@ -79,8 +79,8 @@ def createCustomerCapitalOne():
         "coupons" : [{
             "id":5,
             "code":"ki98GTB56fg",
-            "image":"https://firebasestorage.googleapis.com/v0/b/seec-pennapps.appspot.com/o/starbucks%20Cropped.jpg?alt=media&token=d940e2e0-0850-423b-b95d-53cb1cb6eb9a",
-            "message":"30% off",
+            "image":"https://firebasestorage.googleapis.com/v0/b/seec-pennapps.appspot.com/o/Screenshot%20from%202019-09-08%2001-43-55%20Cropped%20(2).png?alt=media&token=c54cb559-0d4e-483c-850b-f234da18b4f2",
+            "message":"SIGN UP BONUS! Have 30% off on us!",
             "price":11,
             "vendor":"Starbucks"
         }],
