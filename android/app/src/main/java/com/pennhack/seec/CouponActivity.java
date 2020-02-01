@@ -54,8 +54,6 @@ public class CouponActivity extends AppCompatActivity {
 
         client = new OkHttpClient();
 
-        Helpers.getInstance().bottomNavigatior(this, mOnNavigationItemSelectedListener, 1);
-
         JSONObject payload = new JSONObject();
         try {
             String custId = getApplicationContext().getSharedPreferences("ABC", 0).getString("custId", null);

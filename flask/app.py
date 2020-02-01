@@ -8,7 +8,7 @@ from firebase_admin import credentials
 import requests
 import json
 
-capitalOneAPIKey = 'f990b904d48c2277e4b75f9ddd8ed3c9'
+capitalOneAPIKey = '' #did stuff
 app = flask.Flask(__name__)
 
 cred = credentials.Certificate("seec-pennapps-firebase-adminsdk-7zh6f-41c2a963c2.json")
